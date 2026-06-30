@@ -1,2 +1,112 @@
-# Ad_Mute_Watcher
-This will watch a specific part of your monitor and mute your machine if it is an advertisement
+# Ad Mute Watcher
+
+A Windows Python script that watches one or more screen regions for ad text (like `Advertisement` or `Sponsored`) and automatically mutes/unmutes system audio.
+
+## What it does
+
+- Captures configured screen regions repeatedly
+- Uses OCR (Tesseract) to read text in those regions
+- Detects ad keywords
+- Mutes audio when ad text is detected
+- Unmutes when regular content is detected
+- Uses consecutive-hit logic to reduce flicker and false toggles
+
+## Requirements
+
+- Windows 10/11
+- Python 3.10+
+- [Tesseract OCR](https://github.com/UB-Mannheim/tesseract/wiki)
+
+Python packages:
+
+```powershell
+pip install mss numpy opencv-python pytesseract pycaw comtypes
+```
+
+## Install Tesseract
+
+1. Install from UB Mannheim build:
+   - <https://github.com/UB-Mannheim/tesseract/wiki>
+2. Confirm executable exists, usually:
+   - `C:\Program Files\Tesseract-OCR\tesseract.exe`
+3. In `ad_mute_watcher.py`, set:
+
+```python
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+```
+
+## Project files
+
+- `ad_mute_watcher.py` - main script
+
+## Configuration
+
+Edit these values in `ad_mute_watcher.py`:
+
+- `AD_KEYWORDS` - words that trigger muting
+- `SCAN_INTERVAL_SECONDS` - how often OCR runs
+- `CONSECUTIVE_HITS_REQUIRED` - stability threshold before toggling mute
+- `DEBUG_OCR` - print OCR output for tuning
+- `REGIONS` - list of OCR boxes to scan
+
+Example:
+
+```python
+REGIONS = [
+    {"left": -2160, "top": 2800, "width": 500, "height": 40},
+    {"left": -2160, "top": 2835, "width": 500, "height": 40},
+]
+```
+
+## How screen regions work
+
+Each region is a rectangle:
+
+- `left`: x-coordinate of the top-left corner
+- `top`: y-coordinate of the top-left corner
+- `width`: rectangle width
+- `height`: rectangle height
+
+Tips:
+
+- Use **small, tight regions** around ad text labels for best OCR accuracy.
+- Two small regions are usually more reliable than one large box.
+- Keep `DEBUG_OCR = True` while tuning.
+
+## Run
+
+From the project folder:
+
+```powershell
+python .\ad_mute_watcher.py
+```
+
+Stop with `Ctrl+C`.
+
+## Troubleshooting
+
+### `TesseractNotFoundError`
+
+- Tesseract is missing or path is wrong.
+- Reinstall Tesseract and verify `tesseract_cmd` path.
+
+### Wrong monitor/region
+
+- Print available monitor bounds (already in script) and adjust `REGIONS`.
+- Use monitor-relative logic if your display layout changes.
+
+### False positives
+
+- Remove generic keywords (like `ad`).
+- Tighten regions around only the ad label.
+- Increase `CONSECUTIVE_HITS_REQUIRED`.
+
+### Slow response
+
+- Lower `SCAN_INTERVAL_SECONDS` slightly (e.g., `0.4`).
+- Keep regions as small as possible.
+
+## Notes
+
+- This currently mutes **system output** (master endpoint).
+- If needed, this can be extended to mute only a specific app session.
