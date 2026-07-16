@@ -1,7 +1,8 @@
-# Import standard libraries for pattern matching, time delays, and Windows audio/COM integration
+# Import standard libraries for pattern matching, time delays, Windows audio/COM integration, and command line argument parsing
 import re
 import time
 from ctypes import POINTER, cast
+import argparse
 
 # Import computer vision and image processing libraries
 import cv2
@@ -35,6 +36,13 @@ CONSECUTIVE_HITS_REQUIRED = 2
 # Print debug output showing OCR results
 DEBUG_OCR = True
 
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--debug-ocr", dest="debug_ocr", action="store_true")
+    parser.add_argument("--no-debug-ocr", dest="debug_ocr", action="store_false")
+    parser.set_defaults(debug_ocr=DEBUG_OCR)
+    return parser.parse_args()
 
 def get_endpoint_volume():
     """Get access to the Windows system audio volume control."""
@@ -176,7 +184,9 @@ def main():
 
  
 if __name__ == "__main__":
-    # Run main loop; gracefully exit on Ctrl+C
+    args = parse_args()
+    DEBUG_OCR = args.debug_ocr
+
     try:
         main()
     except KeyboardInterrupt:
